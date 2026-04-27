@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Katak Cerdas: Lompat & Belajar!</title>
+    <style>
+        /* --- TEMA NINTENDO SWITCH / MODERN --- */
+        :root {
+            --bg-color: #48cae4;
+            --pond-top: #00b4d8;
+            --pond-bottom: #0077b6;
+            --leaf-light: #52b788;
+            --leaf-dark: #2d6a4f;
+            --leaf-border: #1b4332;
+            --frog-color: #a7c957;
+            --frog-dark: #6a994e;
+            --frog-belly: #f2e8cf;
+            --text-color: #ffffff;
+            --correct-color: #06D6A0;
+            --wrong-color: #EF476F;
+            --btn-main: #FFD166;
+            --btn-dark: #F77F00;
+            --btn-border: #D62828;
+            --panel-border: rgba(255,255,255,0.4);
+            --font-main: 'Nunito', 'Fredoka One', 'Varela Round', 'Comic Sans MS', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, #90e0ef 0%, #0077b6 100%);
+            color: var(--text-color);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- UI GLOBAL --- */
+        #top-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .global-btn {
+            background: linear-gradient(180deg, #fff 0%, #e0e0e0 100%);
+            border: 3px solid #ccc;
+            border-bottom: 6px solid #aaa;
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #333;
+        }
+        .global-btn:active {
+            transform: translateY(4px);
+            border-bottom: 2px solid #aaa;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #timer-display {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: rgba(0,0,0,0.6);
+            padding: 5px 25px;
+            border-radius: 30px;
+            border: 3px solid #FFD166;
+            color: #FFD166;
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- LAYAR MENU --- */
+        #menu {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('menu_back.jpg') no-repeat center center;
+            background-size: cover;
+            background-color: #48cae4;
+            z-index: 500;
+            overflow: hidden; /* Mencegah scroll dari animasi hujan/rumput */
+        }
+        
+        /* Container baru untuk elemen UI Menu agar presisi di bawah judul Katak Cerdas */
+        .menu-ui-container {
+            position: absolute;
+            top: 45%; /* Menaruh posisi tepat di bawah gambar judul */
+            right: 8%; /* Memposisikan di area kanan tempat tulisan Katak Cerdas berada */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* Pemilihan Waktu */
+        .time-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
+            padding: 12px 25px;
+            border-radius: 40px;
+            border: 3px solid rgba(255,255,255,0.6);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .time-selector p {
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+        .time-buttons { display: flex; gap: 12px; }
+        .time-btn {
+            background: #e9ecef;
+            color: #495057;
+            border: 3px solid #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+        .time-btn.active {
+            background: #FFD166;
+            color: #d90429;
+            border-color: #fff;
+            box-shadow: 0 8px 15px rgba(255, 209, 102, 0.6);
+            transform: scale(1.15) rotate(-3deg);
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            color: #fff;
+            border: 4px solid #fff;
+            border-radius: 50px; 
+            padding: 12px 25px;
+            font-size: 1.3rem;
+            font-family: inherit;
+            font-weight: 900;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3), inset 0 -4px 0 rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mode-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: rgba(255,255,255,0.2);
+            transform: rotate(45deg) translateY(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .mode-btn:hover::after { transform: rotate(45deg) translateY(100%); }
+        
+        .mode-btn.solo { background: #06D6A0; border-bottom: 8px solid #014d39; }
+        .mode-btn.duel { background: #118AB2; border-bottom: 8px solid #063646; }
+        .mode-btn.trio { background: #9D4EDD; border-bottom: 8px solid #3c096c; }
+        .mode-btn.leaderboard { background: #FF9F1C; border-bottom: 8px solid #a35d03; flex-direction: row; gap: 10px; margin-top: 5px; min-width: auto; padding: 12px 30px;}
+
+        .mode-btn small {
+            font-size: 0.9rem;
+            opacity: 1;
+            color: #fff;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 15px;
+            border-radius: 20px;
+            margin-top: 5px;
+            text-shadow: none;
+        }
+        .mode-btn:hover { transform: translateY(-8px) scale(1.05) rotate(2deg); }
+        .mode-btn:active { 
+            transform: translateY(4px) scale(0.95); 
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2);
+        }
+        .mode-btn.solo:active { border-bottom: 4px solid #014d39; }
+        .mode-btn.duel:active { border-bottom: 4px solid #063646; }
+        .mode-btn.trio:active { border-bottom: 4px solid #3c096c; }
+        .mode-btn.leaderboard:active { border-bottom: 4px solid #a35d03; }
+
+        /* --- MODAL INPUT NAMA & LEADERBOARD --- */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000; display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            border: 6px solid #fff;
+            border-radius: 30px;
+            padding: 30px;
+            width: 90%; max-width: 450px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), inset 0 -5px 0 rgba(0,0,0,0.2);
+            text-align: center;
+            color: #fff;
+        }
+        .modal-box h2 {
+            font-size: 2.2rem; margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #000;
+            -webkit-text-stroke: 1px rgba(0,0,0,0.5);
+        }
+        .name-input-group {
+            display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;
+        }
+        .name-input-group input {
+            padding: 15px; font-size: 1.3rem; border-radius: 15px; border: 3px solid #fff;
+            font-family: var(--font-main); font-weight: bold; color: #023e8a;
+            text-align: center; box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
+            outline: none;
+        }
+        .name-input-group input:focus { border-color: #FFD166; box-shadow: 0 0 10px #FFD166, inset 0 3px 5px rgba(0,0,0,0.2); }
+        .modal-actions { display: flex; gap: 15px; justify-content: center; }
+        .btn-modal {
+            padding: 12px 25px; font-size: 1.3rem; font-weight: bold; border-radius: 15px; border: 3px solid #fff;
+            cursor: pointer; font-family: inherit; transition: all 0.1s;
+        }
+        .btn-modal.start { background: #06D6A0; color: #fff; border-bottom: 5px solid #014d39; text-shadow: 1px 1px 0 #000;}
+        .btn-modal.cancel { background: #EF476F; color: #fff; border-bottom: 5px solid #69172b; text-shadow: 1px 1px 0 #000;}
+        .btn-modal:active { transform: translateY(4px); border-bottom-width: 1px; }
+
+        .lb-list {
+            list-style: none; padding: 0; margin-bottom: 20px; max-height: 250px; overflow-y: auto;
+            background: rgba(0,0,0,0.2); border-radius: 15px; padding: 10px;
+        }
+        .lb-list li {
+            display: flex; justify-content: space-between; padding: 10px 15px;
+            background: rgba(255,255,255,0.15); margin-bottom: 8px; border-radius: 10px;
+            font-size: 1.2rem; font-weight: bold; border: 2px solid rgba(255,255,255,0.2);
+        }
+        .lb-list li:nth-child(1) { background: rgba(255, 209, 102, 0.4); border-color: #FFD166; color: #FFD166; }
+        .lb-list li:nth-child(2) { background: rgba(224, 224, 224, 0.3); border-color: #e0e0e0; }
+        .lb-list li:nth-child(3) { background: rgba(205, 127, 50, 0.3); border-color: #cd7f32; }
+
+        /* --- LAYAR PERMAINAN & GRID --- */
+        #game {
+            width: 100%; height: 100%;
+            display: grid;
+            background: #111;
+            gap: 6px;
+            padding-top: 60px;
+            transition: all 0.5s ease;
+        }
+
+        #game.solo { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+        #game.duel { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+        #game.trio { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr; }
+
+        /* Kustomisasi Tata Letak Fullscreen untuk Solo */
+        #game.solo {
+            padding-top: 0;
+            gap: 0;
+            background: transparent;
+        }
+        #game.solo .player-panel {
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+        }
+        #game.solo .header-area {
+            padding-top: 65px; /* Memberi ruang agar tidak tertutup top-bar */
+            border-radius: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%);
+            border-bottom: none;
+        }
+        #game.solo .controls-area {
+            border-top: none;
+            background: rgba(2, 62, 138, 0.85); /* Sedikit transparan agar menyatu */
+        }
+
+        @media (orientation: portrait) {
+            #game.duel { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+            #game.trio { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 1fr; }
+            
+            #game.trio .player-panel { flex-direction: row !important; }
+            #game.trio .controls-area { 
+                width: 120px !important; flex-direction: column !important; 
+                border-top: none !important; border-left: 4px solid rgba(0,0,0,0.2) !important; 
+                padding: 8px !important; gap: 8px !important;
+            }
+            #game.trio .header-area { 
+                flex-direction: column !important; text-align: center !important; justify-content: center !important; gap: 8px !important;
+                width: 90px !important; padding: 5px !important; font-size: 1rem !important; border-bottom: none !important; border-right: 4px solid rgba(0,0,0,0.2) !important;
+            }
+            #game.trio .answer-btn { min-height: 40px !important; font-size: 1.4rem !important; border-bottom-width: 4px !important; border-width: 2px !important;}
+            #game.trio .leaf { width: 50px !important; height: 50px !important; font-size: 1.2rem !important; border-width: 2px !important;}
+            #game.trio .leaf::before { border-right-width: 15px !important; border-top-width: 8px !important; border-bottom-width: 8px !important;}
+            #game.trio .frog { width: 40px !important; height: 32px !important; border-width: 2px !important; bottom: -45px !important;}
+            #game.trio .frog::before, #game.trio .frog::after { width: 12px !important; height: 12px !important; top: -6px !important; border-width: 2px !important;}
+            #game.trio .frog-belly { width: 26px !important; height: 12px !important; }
+            #game.trio .frog-leg-left, #game.trio .frog-leg-right { width: 16px !important; height: 16px !important; bottom: -3px !important; border-width: 2px !important;}
+            #game.trio .question-box { font-size: 1.5rem !important; top: 10px !important; padding: 5px 20px !important; border-width: 3px !important;}
+            #game.trio .score-box { padding: 5px 12px !important; font-size: 1rem !important; }
+        }
+
+        /* --- PANEL PEMAIN --- */
+        .player-panel {
+            background: linear-gradient(135deg, var(--pond-top), var(--pond-bottom));
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 0 6px var(--panel-border), 0 10px 30px rgba(0,0,0,0.5);
+            border: 4px solid #023e8a;
+        }
+
+        @media (min-aspect-ratio: 1/1) {
+            .player-panel.side-controls { flex-direction: row; }
+            .player-panel.side-controls .controls-area { 
+                width: 140px; flex-direction: column; 
+                border-top: none; border-left: 6px solid rgba(0,0,0,0.2); 
+            }
+            .player-panel.side-controls .header-area { flex-direction: column; text-align: center; justify-content: center; gap: 10px;}
+        }
+
+        .header-area {
+            background: rgba(0,0,0,0.4);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border-bottom: 4px solid rgba(0,0,0,0.2);
+        }
+
+        .player-name { 
+            color: #fff; 
+            text-shadow: 2px 2px 0 #000;
+            -webkit-text-stroke: 1px rgba(0,0,0,0.5);
+            max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .score-box { 
+            background: linear-gradient(180deg, #ffd166, #f77f00); 
+            color: #fff;
+            padding: 5px 20px; 
+            border-radius: 20px; 
+            border: 3px solid #fff;
+            box-shadow: 0 4px 0 #cc5500;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+
+        .question-box {
+            position: absolute;
+            top: 40px; left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            color: #023e8a;
+            padding: 15px 40px;
+            border-radius: 40px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 -5px 0 #e0e0e0;
+            z-index: 20;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid #0077b6;
+        }
+
+        .visual-area {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #00b4d8 0%, #0077b6 100%);
+            overflow: hidden;
+        }
+        .visual-area::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><path d="M0 100 Q 50 50 100 100 T 200 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>') repeat;
+            opacity: 0.5;
+            animation: moveWater 10s linear infinite;
+        }
+
+        .controls-area {
+            background: #023e8a;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 12px;
+            border-top: 6px solid rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .answer-btn {
+            background: linear-gradient(180deg, #ffffff 0%, #e9ecef 100%);
+            color: #023e8a;
+            border: 4px solid #fff;
+            border-bottom: 6px solid #adb5bd;
+            border-radius: 20px;
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.1s;
+            min-height: 70px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            -webkit-text-stroke: 1px rgba(0,0,0,0.1);
+        }
+        .answer-btn:hover { transform: scale(1.02); background: #fff; }
+        .answer-btn:active {
+            transform: translateY(4px) scale(0.98);
+            border-bottom: 2px solid #adb5bd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* --- OBJEK PERMAINAN --- */
+        .leaf {
+            position: absolute;
+            width: 90px; height: 90px;
+            background: radial-gradient(circle at 30% 30%, var(--leaf-light), var(--leaf-dark));
+            border-radius: 50%;
+            border: 4px solid var(--leaf-border);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), inset 5px 5px 15px rgba(255,255,255,0.3), 0 10px 15px rgba(0,0,0,0.4);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; font-weight: 900; color: white;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; transform-origin: center;
+            animation: windSway 4s ease-in-out infinite alternate;
+        }
+        .leaf::before {
+            content: ''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%);
+            border-top: 15px solid transparent; border-bottom: 15px solid transparent;
+            border-right: 30px solid var(--pond-top);
+            filter: drop-shadow(-3px 0 2px rgba(0,0,0,0.3));
+        }
+
+        .leaf-0 { top: 30%; left: 15%; animation-delay: 0s; }
+        .leaf-1 { top: 45%; left: 70%; animation-delay: 0.5s; }
+        .leaf-2 { top: 60%; left: 20%; animation-delay: 1s; }
+        .leaf-3 { top: 75%; left: 65%; animation-delay: 1.5s; }
+
+        @keyframes windSway {
+            0% { transform: translate(-20px, 5px) rotate(-8deg); box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), inset 5px 5px 15px rgba(255,255,255,0.3), 10px 15px 15px rgba(0,0,0,0.4); }
+            50% { transform: translate(5px, -5px) rotate(2deg); }
+            100% { transform: translate(25px, 0px) rotate(8deg); box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), inset 5px 5px 15px rgba(255,255,255,0.3), -10px 15px 15px rgba(0,0,0,0.4); }
+        }
+
+        .leaf.sinking { animation: sink 1s forwards; pointer-events: none; }
+        @keyframes sink {
+            0% { transform: scale(1) rotate(0); opacity: 1; }
+            50% { transform: scale(0.8) rotate(20deg) translateY(20px); opacity: 0.8; filter: brightness(0.5); }
+            100% { transform: scale(0) rotate(45deg) translateY(50px); opacity: 0; }
+        }
+        .leaf.correct-bounce {
+            animation: correctBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: radial-gradient(circle at 30% 30%, #52ffb8, var(--correct-color));
+            border-color: #03a077;
+        }
+        @keyframes correctBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-25px) scale(1.15); box-shadow: 0 30px 30px rgba(0,255,100,0.5); }
+        }
+
+        .frog {
+            position: absolute;
+            width: 60px; height: 50px;
+            background: var(--frog-color);
+            border-radius: 50% 50% 40% 40%;
+            border: 3px solid var(--frog-dark);
+            box-shadow: inset -5px -10px 15px rgba(0,0,0,0.3), inset 5px 5px 10px rgba(255,255,255,0.5), 0 10px 15px rgba(0,0,0,0.5);
+            bottom: -60px; left: 50%; transform: translateX(-50%);
+            transition: left 0.4s ease-out, top 0.4s ease-out, bottom 0.4s ease-out; z-index: 15;
+        }
+        .frog::before, .frog::after {
+            content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: -10px; border: 3px solid var(--frog-dark);
+            box-shadow: inset -2px -2px 0 rgba(0,0,0,0.1), inset 4px -4px 0 #000, 0 3px 5px rgba(0,0,0,0.3);
+        }
+        .frog::before { left: 2px; } .frog::after { right: 2px; }
+        .frog-belly {
+            position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 40px; height: 20px; background: var(--frog-belly);
+            border-radius: 50% 50% 40% 40%; border-top: 2px solid rgba(0,0,0,0.1);
+        }
+        .frog-leg-left, .frog-leg-right {
+            position: absolute; width: 25px; height: 25px; background: var(--frog-color); border-radius: 50%; bottom: -5px; border: 3px solid var(--frog-dark); z-index: -1;
+        }
+        .frog-leg-left { left: -10px; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.3); }
+        .frog-leg-right { right: -10px; box-shadow: inset 2px -2px 5px rgba(0,0,0,0.3); }
+
+        .frog.jumping {
+            transition: left 0.4s ease-out, top 0.4s ease-out, bottom 0.4s ease-out; z-index: 25;
+            animation: squashJump 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        @keyframes squashJump {
+            0% { transform: translateX(-50%) scale(1, 1); }
+            20% { transform: translateX(-50%) scale(0.8, 1.2); }
+            50% { transform: translateX(-50%) scale(1.1, 0.9); }
+            80% { transform: translateX(-50%) scale(0.9, 1.1); }
+            100% { transform: translateX(-50%) scale(1, 1); }
+        }
+
+        .frog.falling { animation: frogFall 0.7s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
+        @keyframes frogFall {
+            0% { transform: translateX(-50%) scale(1) rotate(0); opacity: 1; }
+            100% { transform: translateX(-50%) scale(0.3) rotate(180deg) translateY(100px); opacity: 0; }
+        }
+
+        /* --- EFEK VISUAL: CIPRATAN, HUJAN & RUMPUT --- */
+        .splash {
+            position: absolute; width: 30px; height: 30px; background: rgba(255,255,255,0.9); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 14; animation: splashAnim 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            box-shadow: 0 0 20px rgba(255,255,255,0.8);
+        }
+        @keyframes splashAnim {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            80% { opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+        }
+
+        .rain-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; overflow: hidden; display: none; background: rgba(0,30,60,0.4);
+        }
+        .rain-container.active { display: block; animation: fadeInOut 2s; }
+        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+        .drop {
+            position: absolute; width: 3px; height: 25px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.8));
+            border-radius: 5px; animation: rainFall 0.3s linear infinite;
+        }
+        @keyframes rainFall { 0% { transform: translateY(-50px) rotate(10deg); } 100% { transform: translateY(800px) rotate(10deg); } }
+
+        /* Hujan & Gelombang Berkelanjutan (Ambient) */
+        .ambient-drop {
+            position: absolute;
+            width: 2px; height: 20px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.7));
+            border-radius: 2px;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .ambient-ripple {
+            position: absolute;
+            width: 50px; height: 15px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 4;
+            pointer-events: none;
+            animation: ambientRippleAnim 1s ease-out forwards;
+        }
+        @keyframes ambientRippleAnim {
+            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; border-width: 4px; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; border-width: 1px; }
+        }
+
+        /* Rumput Bergoyang */
+        .grass {
+            position: absolute;
+            bottom: -5px;
+            width: 30vw;
+            max-width: 200px;
+            height: 20vh;
+            max-height: 150px;
+            /* SVG Rumput vektor 3D yang indah */
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,100 C10,80 5,40 20,20 C20,50 30,80 40,100 Z" fill="%2352b788"/><path d="M30,100 C40,70 35,20 50,0 C55,40 60,70 70,100 Z" fill="%232d6a4f"/><path d="M60,100 C70,70 80,30 100,20 C90,60 90,80 100,100 Z" fill="%231b4332"/></svg>') no-repeat bottom center;
+            background-size: cover;
+            z-index: 40;
+            transform-origin: bottom center;
+            pointer-events: none;
+        }
+        .grass-left { left: -5%; animation: swayGrassLeft 3s ease-in-out infinite alternate; }
+        .grass-right { right: -5%; transform: scaleX(-1); animation: swayGrassRight 3.5s ease-in-out infinite alternate; }
+        
+        @keyframes swayGrassLeft { 
+            0% { transform: rotate(-5deg); } 
+            100% { transform: rotate(5deg); } 
+        }
+        @keyframes swayGrassRight { 
+            0% { transform: scaleX(-1) rotate(-5deg); } 
+            100% { transform: scaleX(-1) rotate(5deg); } 
+        }
+
+        /* --- LAYAR GAME OVER --- */
+        #game-over {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        #game-over h2 { font-size: 4rem; color: #FFD166; text-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-bottom: 30px; text-align: center;}
+        .result-row { 
+            display: flex; align-items: center; justify-content: space-between; width: 350px; max-width: 90vw; font-size: 1.5rem; 
+            background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 15px; margin-bottom: 12px; border: 2px solid rgba(255,255,255,0.2); font-weight: bold; color: white;
+        }
+        .result-row.winner { background: rgba(6, 214, 160, 0.3); border-color: #06D6A0; transform: scale(1.05); box-shadow: 0 5px 15px rgba(6,214,160,0.4);}
+        
+        /* Media Query untuk Mobile */
+        @media (max-width: 600px) {
+            #menu {
+                background-position: 65% center;
+                display: flex;
+                justify-content: flex-end;
+            }
+            .menu-ui-container {
+                position: relative;
+                top: auto; right: auto;
+                margin-top: auto;
+                margin-bottom: 70px;
+                transform: scale(0.9);
+                transform-origin: bottom center;
+            }
+            #game-over h2 { font-size: 3rem; }
+            .question-box { font-size: 1.8rem; top: 30px; padding: 10px 25px; border-width: 3px;}
+            .answer-btn { font-size: 1.6rem; min-height: 55px; border-bottom-width: 4px;}
+            .mode-btn { font-size: 1.2rem; padding: 12px 20px; min-width: 140px;}
+            .modal-box { padding: 20px; }
+            .modal-box h2 { font-size: 1.8rem; }
+            #game.solo .header-area { padding-top: 55px; } /* penyesuaian top bar handphone */
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- BILAH ATAS -->
+    <div id="top-bar">
+        <button class="global-btn" id="home-btn" title="Kembali ke Menu" style="display:none;" onclick="backToMenu()">🏠</button>
+        <div style="flex:1"></div>
+        
+        <!-- Timer UI -->
+        <div id="timer-display" class="hidden">⏱️ 01:00</div>
+        
+        <div style="flex:1; display:flex; justify-content:flex-end;">
+            <button class="global-btn" id="bgm-btn" title="Nyalakan/Matikan Musik" style="margin-right: 15px;">🔈</button>
+            <button class="global-btn" id="fullscreen-btn" title="Layar Penuh">⛶</button>
+        </div>
+    </div>
+
+    <!-- LAYAR MENU -->
+    <div id="menu">
+        <!-- Efek Rumput di Menu -->
+        <div class="grass grass-left"></div>
+        <div class="grass grass-right"></div>
+        
+        <div class="menu-ui-container">
+            <div class="time-selector">
+                <p>Pilih Waktu Bermain ⏳</p>
+                <div class="time-buttons">
+                    <button class="time-btn active" onclick="setGameTime(60, this)">1 Menit</button>
+                    <button class="time-btn" onclick="setGameTime(120, this)">2 Menit</button>
+                    <button class="time-btn" onclick="setGameTime(180, this)">3 Menit</button>
+                </div>
+            </div>
+
+            <div class="mode-buttons">
+                <button class="mode-btn solo" onclick="openNameModal(1)">🧍 1 Pemain<br><small>MAIN SENDIRI</small></button>
+                <button class="mode-btn duel" onclick="openNameModal(2)">⚔️ 2 Pemain<br><small>DUEL</small></button>
+                <button class="mode-btn trio" onclick="openNameModal(3)">🤝 3 Pemain<br><small>TRIO</small></button>
+            </div>
+            <button class="mode-btn leaderboard" onclick="showLeaderboardModal()">🏆 Papan Peringkat</button>
+        </div>
+    </div>
+
+    <!-- MODAL INPUT NAMA -->
+    <div id="name-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>Masukkan Nama Pemain</h2>
+            <div id="name-inputs" class="name-input-group"></div>
+            <div class="modal-actions">
+                <button class="btn-modal start" onclick="startGameWithNames()">Mulai 🎮</button>
+                <button class="btn-modal cancel" onclick="closeNameModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LEADERBOARD -->
+    <div id="leaderboard-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>🏆 Papan Peringkat Top 10</h2>
+            <ul id="leaderboard-list" class="lb-list"></ul>
+            <button class="btn-modal cancel" onclick="closeLeaderboardModal()">Tutup</button>
+        </div>
+    </div>
+
+    <!-- LAYAR PERMAINAN -->
+    <div id="game" class="hidden">
+        <!-- Panel Pemain akan disuntikkan secara dinamis di sini -->
+    </div>
+
+    <!-- LAYAR GAME OVER -->
+    <div id="game-over" class="hidden">
+        <h2>Waktu Habis!</h2>
+        <div id="results"></div>
+        <div style="display:flex; gap: 15px; margin-top: 30px;">
+            <button class="btn-modal start" onclick="showLeaderboardModal()">Lihat Peringkat Global</button>
+            <button class="btn-modal cancel" onclick="backToMenu()">Kembali ke Menu</button>
+        </div>
+    </div>
+
+<script>
+    // --- VARIABEL GLOBAL ---
+    let players = [];
+    let customNames = [];
+    let activePlayerCount = 1;
+    let audioCtx;
+    let isBgmPlaying = false;
+    let bgmInterval;
+    let ambientRainInterval;
+    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63]; 
+    let noteIndex = 0;
+    
+    // Variabel Timer
+    let selectedDuration = 60; 
+    let timeRemaining = 0;
+    let timerInterval = null;
+    let gameIsActive = false;
+
+    // Warna tetap untuk panel
+    const PLAYER_COLORS = ['#FF595E', '#1982C4', '#8AC926'];
+
+    // --- ELEMEN DOM ---
+    const menuEl = document.getElementById('menu');
+    const gameEl = document.getElementById('game');
+    const homeBtn = document.getElementById('home-btn');
+    const bgmBtn = document.getElementById('bgm-btn');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const timerDisplay = document.getElementById('timer-display');
+    const gameOverEl = document.getElementById('game-over');
+    const resultsEl = document.getElementById('results');
+    const nameModal = document.getElementById('name-modal');
+    const nameInputsContainer = document.getElementById('name-inputs');
+    const leaderboardModal = document.getElementById('leaderboard-modal');
+    const leaderboardList = document.getElementById('leaderboard-list');
+
+    // --- EFEK HUJAN & GELOMBANG (AMBIENT) ---
+    function createAmbientRaindrop(container) {
+        if(!container) return;
+        const drop = document.createElement('div');
+        drop.className = 'ambient-drop';
+        
+        // Random posisi X dan koordinat jatuh (Y)
+        const startX = Math.random() * 100;
+        const endY = 40 + Math.random() * 55; // Jatuh di paruh bawah layar
+        
+        drop.style.left = `${startX}%`;
+        drop.style.top = `-20px`; // Mulai dari atas
+        container.appendChild(drop);
+
+        const duration = 500 + Math.random() * 300; // Kecepatan acak
+        
+        // Animasi turun (pakai Animate API untuk presisi)
+        const animation = drop.animate([
+            { transform: 'translateY(0)', opacity: 1 },
+            { transform: `translateY(${container.offsetHeight * (endY/100)}px)`, opacity: 0.3 }
+        ], { duration: duration, easing: 'linear' });
+
+        animation.onfinish = () => {
+            drop.remove();
+            createAmbientRipple(container, startX, endY);
+        };
+    }
+
+    function createAmbientRipple(container, x, y) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ambient-ripple';
+        ripple.style.left = `${x}%`;
+        ripple.style.top = `${y}%`;
+        container.appendChild(ripple);
+        
+        // Hapus elemen setelah animasi selesai
+        setTimeout(() => { if(ripple.parentNode) ripple.remove(); }, 1000);
+    }
+
+    function startAmbientEffects() {
+        if(ambientRainInterval) clearInterval(ambientRainInterval);
+        
+        ambientRainInterval = setInterval(() => {
+            // Jika Menu Utama tampil
+            if(!menuEl.classList.contains('hidden')) {
+                createAmbientRaindrop(menuEl);
+            } 
+            // Jika dalam Game dan Mode Solo (1 Pemain)
+            else if(!gameEl.classList.contains('hidden') && activePlayerCount === 1) {
+                const visualArea = document.getElementById('visual-0');
+                if(visualArea) createAmbientRaindrop(visualArea);
+            }
+        }, 200); // Munculkan hujan baru setiap 200 milidetik
+    }
+
+    // --- SISTEM AUDIO ---
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol = 0.1) {
+        if (!isBgmPlaying && type === 'sine') return;
+        if (!audioCtx) return;
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    function toggleBGM() {
+        initAudio();
+        isBgmPlaying = !isBgmPlaying;
+        bgmBtn.textContent = isBgmPlaying ? '🔊' : '🔈';
+        if (isBgmPlaying) {
+            bgmInterval = setInterval(() => {
+                playTone(notes[noteIndex], 'sine', 0.3, 0.05);
+                noteIndex = (noteIndex + 1) % notes.length;
+            }, 400);
+        } else { clearInterval(bgmInterval); }
+    }
+
+    function playJumpSfx() { playTone(400, 'triangle', 0.2, 0.1); setTimeout(()=>playTone(600, 'triangle', 0.3, 0.1), 100); }
+    function playCorrectSfx() { playTone(800, 'square', 0.1, 0.05); setTimeout(()=>playTone(1200, 'square', 0.3, 0.05), 100); }
+    function playWrongSfx() { playTone(150, 'sawtooth', 0.5, 0.1); }
+    function playSplashSfx() { playTone(100, 'sine', 0.6, 0.2); }
+    function playEndSfx() { playTone(523.25, 'triangle', 0.5, 0.2); setTimeout(()=>playTone(659.25, 'triangle', 0.6, 0.2), 300); }
+
+    bgmBtn.addEventListener('click', toggleBGM);
+    
+    fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => console.log(err));
+        } else { document.exitFullscreen(); }
+    });
+
+    // --- LOGIKA LEADERBOARD ---
+    function saveToLeaderboard(name, score) {
+        if (score <= 0) return;
+        let board = JSON.parse(localStorage.getItem('katak_leaderboard')) || [];
+        board.push({ name: name, score: score, date: new Date().toLocaleDateString() });
+        board.sort((a, b) => b.score - a.score);
+        board = board.slice(0, 10);
+        localStorage.setItem('katak_leaderboard', JSON.stringify(board));
+    }
+
+    function showLeaderboardModal() {
+        initAudio();
+        let board = JSON.parse(localStorage.getItem('katak_leaderboard')) || [];
+        leaderboardList.innerHTML = '';
+        
+        if(board.length === 0) {
+            leaderboardList.innerHTML = '<li>Belum ada data skor</li>';
+        } else {
+            board.forEach((entry, idx) => {
+                let medal = '';
+                if(idx === 0) medal = '🥇';
+                else if(idx === 1) medal = '🥈';
+                else if(idx === 2) medal = '🥉';
+                else medal = `&nbsp;&nbsp;${idx+1}.`;
+
+                leaderboardList.innerHTML += `
+                    <li><span>${medal} ${entry.name}</span><span>⭐ ${entry.score}</span></li>
+                `;
+            });
+        }
+        leaderboardModal.classList.remove('hidden');
+    }
+
+    function closeLeaderboardModal() { leaderboardModal.classList.add('hidden'); }
+
+    // --- LOGIKA MENU, MODAL NAMA & TIMER ---
+    function setGameTime(seconds, btnElement) {
+        selectedDuration = seconds;
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
+    }
+
+    function openNameModal(numPlayers) {
+        initAudio();
+        activePlayerCount = numPlayers;
+        nameInputsContainer.innerHTML = '';
+        
+        for(let i=0; i<numPlayers; i++) {
+            nameInputsContainer.innerHTML += `<input type="text" id="input-name-${i}" placeholder="Nama Pemain ${i+1}" maxlength="12" autocomplete="off">`;
+        }
+        nameModal.classList.remove('hidden');
+    }
+
+    function closeNameModal() { nameModal.classList.add('hidden'); }
+
+    function startGameWithNames() {
+        customNames = [];
+        for(let i=0; i<activePlayerCount; i++) {
+            let val = document.getElementById(`input-name-${i}`).value.trim();
+            if(!val) val = `Pemain ${i+1}`;
+            customNames.push(val);
+        }
+        closeNameModal();
+        startGame(activePlayerCount);
+    }
+
+    function updateTimerUI() {
+        let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        let s = (timeRemaining % 60).toString().padStart(2, '0');
+        timerDisplay.textContent = `⏱️ ${m}:${s}`;
+        
+        if(timeRemaining <= 10) {
+            timerDisplay.style.color = '#EF476F';
+            timerDisplay.style.borderColor = '#EF476F';
+            timerDisplay.style.transform = timeRemaining % 2 === 0 ? 'scale(1.1)' : 'scale(1)';
+            playTone(800, 'square', 0.1, 0.05);
+        } else {
+            timerDisplay.style.color = '#FFD166';
+            timerDisplay.style.borderColor = '#FFD166';
+            timerDisplay.style.transform = 'scale(1)';
+        }
+    }
+
+    function startTimerLogic() {
+        timeRemaining = selectedDuration;
+        updateTimerUI();
+        timerDisplay.classList.remove('hidden');
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+            updateTimerUI();
+            if (timeRemaining <= 0) finishGame();
+        }, 1000);
+    }
+
+    function backToMenu() {
+        clearInterval(timerInterval);
+        gameIsActive = false;
+        gameEl.classList.add('hidden');
+        menuEl.classList.remove('hidden');
+        gameOverEl.classList.add('hidden');
+        leaderboardModal.classList.add('hidden');
+        timerDisplay.classList.add('hidden');
+        homeBtn.style.display = 'none';
+        players = [];
+        gameEl.innerHTML = '';
+        timerDisplay.style.color = '#FFD166';
+        timerDisplay.style.borderColor = '#FFD166';
+    }
+
+    function finishGame() {
+        clearInterval(timerInterval);
+        gameIsActive = false;
+        playEndSfx();
+        
+        players.forEach(p => p.isJumping = true);
+        
+        players.forEach(p => saveToLeaderboard(p.name, p.score));
+
+        let sortedPlayers = [...players].sort((a,b) => b.score - a.score);
+        let resultsHtml = '';
+        
+        sortedPlayers.forEach((p, index) => {
+            let isWinner = index === 0 && p.score > 0; 
+            resultsHtml += `
+                <div class="result-row ${isWinner ? 'winner' : ''}">
+                    <span style="color:${PLAYER_COLORS[p.id]}; text-shadow: 1px 1px 0 #000;">${p.name} ${isWinner ? '👑' : ''}</span>
+                    <span>⭐ ${p.score}</span>
+                </div>
+            `;
+        });
+        
+        resultsEl.innerHTML = resultsHtml;
+        gameOverEl.classList.remove('hidden');
+    }
+
+    // --- LOGIKA PERMAINAN UTAMA ---
+    function startGame(numPlayers) {
+        menuEl.classList.add('hidden');
+        gameEl.classList.remove('hidden');
+        homeBtn.style.display = 'block';
+        gameIsActive = true;
+        
+        gameEl.className = '';
+        if (numPlayers === 1) {
+            gameEl.classList.add('solo');
+            // Otomatis Fullscreen di peramban jika memilih Solo
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log("Otomatis Layar Penuh terblokir", err));
+            }
+        }
+        if (numPlayers === 2) gameEl.classList.add('duel');
+        if (numPlayers === 3) gameEl.classList.add('trio'); 
+
+        gameEl.innerHTML = '';
+        players = [];
+
+        for (let i = 0; i < numPlayers; i++) { createPlayerPanel(i, customNames[i]); }
+        
+        startTimerLogic();
+        
+        setTimeout(() => {
+            players.forEach(p => {
+                generateQuestion(p);
+                resetFrog(p);
+            });
+        }, 100);
+    }
+
+    function createPlayerPanel(id, playerName) {
+        const panel = document.createElement('div');
+        panel.className = 'player-panel side-controls';
+        panel.id = `player-${id}`;
+        
+        // Tambahkan efek rumput ke visual area
+        let grassHtml = `
+            <div class="grass grass-left"></div>
+            <div class="grass grass-right"></div>
+        `;
+
+        panel.innerHTML = `
+            <div class="header-area">
+                <span class="player-name" style="color:${PLAYER_COLORS[id]}">${playerName}</span>
+                <span class="score-box">⭐ <span id="score-${id}">0</span></span>
+            </div>
+            <div class="visual-area" id="visual-${id}">
+                ${grassHtml}
+                <div class="question-box" id="question-${id}">?</div>
+                <div class="rain-container" id="rain-${id}"></div>
+                <div class="leaf leaf-0" id="leaf-${id}-0"></div>
+                <div class="leaf leaf-1" id="leaf-${id}-1"></div>
+                <div class="leaf leaf-2" id="leaf-${id}-2"></div>
+                <div class="leaf leaf-3" id="leaf-${id}-3"></div>
+                <div class="frog" id="frog-${id}">
+                    <div class="frog-belly"></div>
+                    <div class="frog-leg-left"></div>
+                    <div class="frog-leg-right"></div>
+                </div>
+            </div>
+            <div class="controls-area">
+                <button class="answer-btn" id="btn-${id}-0"></button>
+                <button class="answer-btn" id="btn-${id}-1"></button>
+                <button class="answer-btn" id="btn-${id}-2"></button>
+                <button class="answer-btn" id="btn-${id}-3"></button>
+            </div>
+        `;
+        gameEl.appendChild(panel);
+
+        const rainContainer = document.getElementById(`rain-${id}`);
+        for(let i=0; i<30; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'drop';
+            drop.style.left = `${Math.random() * 100}%`;
+            drop.style.animationDuration = `${0.2 + Math.random()*0.2}s`;
+            drop.style.animationDelay = `${Math.random()*0.5}s`;
+            rainContainer.appendChild(drop);
+        }
+
+        const playerObj = {
+            id: id, name: playerName, score: 0, isJumping: false, currentCorrectIdx: -1,
+            frog: document.getElementById(`frog-${id}`),
+            questionBox: document.getElementById(`question-${id}`),
+            scoreBox: document.getElementById(`score-${id}`),
+            rainContainer: rainContainer,
+            visualArea: document.getElementById(`visual-${id}`),
+            leaves: [ document.getElementById(`leaf-${id}-0`), document.getElementById(`leaf-${id}-1`), document.getElementById(`leaf-${id}-2`), document.getElementById(`leaf-${id}-3`) ],
+            btns: [ document.getElementById(`btn-${id}-0`), document.getElementById(`btn-${id}-1`), document.getElementById(`btn-${id}-2`), document.getElementById(`btn-${id}-3`) ]
+        };
+
+        for (let i = 0; i < 4; i++) {
+            const action = () => handleAnswer(playerObj, i);
+            playerObj.btns[i].addEventListener('click', action);
+            playerObj.leaves[i].addEventListener('click', action);
+        }
+        players.push(playerObj);
+    }
+
+    function generateMathProblem() {
+        const isMul = Math.random() > 0.5;
+        let num1, num2, answer, questionTxt;
+
+        if (isMul) {
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            answer = num1 * num2;
+            questionTxt = `${num1} × ${num2}`;
+        } else {
+            const res = Math.floor(Math.random() * 9) + 2; 
+            num2 = Math.floor(Math.random() * 9) + 2; 
+            num1 = res * num2;
+            answer = res;
+            questionTxt = `${num1} ÷ ${num2}`;
+        }
+
+        let options = [answer];
+        while (options.length < 4) {
+            let offset = Math.floor(Math.random() * 7) - 3;
+            if (offset === 0) offset = 4;
+            let fake = answer + offset;
+            if (fake <= 0) fake = answer + Math.floor(Math.random() * 5) + 1;
+            if (!options.includes(fake)) options.push(fake);
+        }
+        for (let i = options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]];
+        }
+        return { questionTxt, options, correctIdx: options.indexOf(answer) };
+    }
+
+    function generateQuestion(player) {
+        if(!gameIsActive) return;
+        player.leaves.forEach(leaf => {
+            leaf.classList.remove('sinking', 'correct-bounce');
+            leaf.style.background = ''; leaf.style.borderColor = ''; leaf.style.pointerEvents = 'auto';
+        });
+
+        const prob = generateMathProblem();
+        player.currentCorrectIdx = prob.correctIdx;
+        player.questionBox.textContent = `${prob.questionTxt} = ?`;
+
+        for (let i = 0; i < 4; i++) {
+            player.leaves[i].textContent = prob.options[i];
+            player.btns[i].textContent = prob.options[i];
+        }
+        player.isJumping = false;
+    }
+
+    function resetFrog(player) {
+        if(!gameIsActive) return;
+        player.frog.classList.remove('jumping', 'falling');
+        player.frog.style.transition = 'none';
+        player.frog.style.bottom = '-60px'; player.frog.style.left = '50%'; player.frog.style.top = 'auto';
+        player.frog.style.transform = 'translateX(-50%)';
+        
+        setTimeout(() => {
+            if(!gameIsActive) return;
+            player.frog.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.4s ease-out, top 0.4s ease-out';
+            player.frog.style.bottom = '15px';
+        }, 50);
+    }
+
+    function createSplashRipple(visualArea, x, y) {
+        const splash = document.createElement('div'); splash.className = 'splash'; splash.style.left = x; splash.style.top = y;
+        const ripple = document.createElement('div'); ripple.className = 'ripple'; ripple.style.left = x; ripple.style.top = y;
+        visualArea.appendChild(splash); visualArea.appendChild(ripple);
+        setTimeout(() => {
+            if(splash.parentNode) splash.parentNode.removeChild(splash);
+            if(ripple.parentNode) ripple.parentNode.removeChild(ripple);
+        }, 1200);
+    }
+
+    function handleAnswer(player, selectedIdx) {
+        if (player.isJumping || !gameIsActive) return;
+        player.isJumping = true;
+        playJumpSfx();
+
+        const leaf = player.leaves[selectedIdx];
+        const visualRect = player.visualArea.getBoundingClientRect();
+        const leafRect = leaf.getBoundingClientRect();
+
+        const targetX = leafRect.left - visualRect.left + (leafRect.width / 2);
+        const targetY = leafRect.top - visualRect.top + (leafRect.height / 2);
+
+        player.frog.classList.add('jumping');
+        player.frog.style.bottom = 'auto';
+        player.frog.style.left = `${targetX}px`;
+        player.frog.style.top = `${targetY - 20}px`; 
+
+        setTimeout(() => {
+            if(!gameIsActive) return;
+            player.frog.classList.remove('jumping');
+            
+            if (selectedIdx === player.currentCorrectIdx) {
+                playCorrectSfx();
+                leaf.classList.add('correct-bounce');
+                player.score += 10;
+                player.scoreBox.textContent = player.score;
+                player.questionBox.style.transform = 'translateX(-50%) scale(1.1)';
+                player.questionBox.style.borderColor = 'var(--correct-color)';
+                player.questionBox.style.color = 'var(--correct-color)';
+
+                setTimeout(() => {
+                    if(!gameIsActive) return;
+                    player.questionBox.style.transform = 'translateX(-50%) scale(1)';
+                    player.questionBox.style.borderColor = '#0077b6';
+                    player.questionBox.style.color = '#023e8a';
+                    generateQuestion(player); resetFrog(player);
+                }, 800);
+
+            } else {
+                playWrongSfx();
+                leaf.classList.add('sinking');
+                player.frog.classList.add('falling');
+                
+                setTimeout(() => {
+                    if(!gameIsActive) return;
+                    playSplashSfx();
+                    createSplashRipple(player.visualArea, `${targetX}px`, `${targetY}px`);
+                    player.rainContainer.classList.add('active');
+                }, 300);
+
+                player.leaves[player.currentCorrectIdx].style.background = 'radial-gradient(circle at 30% 30%, #52ffb8, var(--correct-color))';
+                player.leaves[player.currentCorrectIdx].style.borderColor = '#03a077';
+
+                setTimeout(() => {
+                    if(!gameIsActive) return;
+                    player.rainContainer.classList.remove('active');
+                    generateQuestion(player); resetFrog(player);
+                }, 2000);
+            }
+        }, 400); 
+    }
+
+    // --- INISIALISASI SAAT HALAMAN DIMUAT ---
+    document.addEventListener("DOMContentLoaded", () => {
+        startAmbientEffects();
+    });
+
+</script>
+</body>
+</html>
